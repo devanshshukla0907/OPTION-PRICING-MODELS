@@ -1,15 +1,18 @@
 import streamlit as st
 import numpy as np
-import scipy.stats as si
 import math
+
+# Define the CDF function using a numerical approximation (error function)
+def cdf(x):
+    return 0.5 * (1 + math.erf(x / math.sqrt(2)))
 
 def black_scholes(S, K, T, r, sigma, option_type='call'):
     d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
     d2 = d1 - sigma * np.sqrt(T)
     if option_type == 'call':
-        price = S * si.norm.cdf(d1, 0.0, 1.0) - K * np.exp(-r * T) * si.norm.cdf(d2, 0.0, 1.0)
+        price = S * cdf(d1) - K * np.exp(-r * T) * cdf(d2)
     else:
-        price = K * np.exp(-r * T) * si.norm.cdf(-d2, 0.0, 1.0) - S * si.norm.cdf(-d1, 0.0, 1.0)
+        price = K * np.exp(-r * T) * cdf(-d2) - S * cdf(-d1)
     return price
 
 def binomial_tree(S, K, T, r, sigma, N=100, option_type='call'):
@@ -74,7 +77,6 @@ else:
     price = monte_carlo(S, K, T, r, sigma, simulations, option_type)
 
 st.write(f'The {option_type} option price using the {model} model is: ${price:.2f}')
-
 
 def generate_option_chain(S, T, r, sigma, model, option_type='call', strikes=10):
     strikes_range = np.linspace(S * 0.8, S * 1.2, strikes)
